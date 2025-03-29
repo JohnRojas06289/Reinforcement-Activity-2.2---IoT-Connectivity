@@ -100,6 +100,7 @@ Probamos la infraestructura de red en **Cisco Packet Tracer**, validando:
 2. **Tiempo de respuesta de CoAP y MQTT.**
 3. **Consumo energético de sensores de peso.**
 
+## Anexo de Cisco Packet Tracer : 
 ---
 
 ## 3. Selección de Opciones
