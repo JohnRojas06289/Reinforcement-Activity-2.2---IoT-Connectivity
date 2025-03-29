@@ -30,7 +30,7 @@ Este enfoque práctico proporciona los siguientes beneficios:
 - Facilidad de implementación al usar un tipo de microcontrolador unificado (ESP32)
 - Flexibilidad para ampliar la red añadiendo más dispositivos ESP32 según sea necesario
 - Capacidad de procesamiento local en cada nodo gracias a las características del ESP32
-- Implementación rápida y económica, ideal para un proyecto estudiantil
+- Implementación rápida y económica, ideal para esta etapa del proyecto 
 
 ### 1.3 Protocolos de Red
 
@@ -45,15 +45,11 @@ Después de evaluar diversos protocolos IoT considerando nuestra infraestructura
 
 #### 1.3.1 Implementación de MQTT
 
-MQTT (Message Queuing Telemetry Transport) será nuestro protocolo principal por varias razones clave:
+MQTT será nuestro protocolo principal debido a que ofrece: 
 
 1. **Soporte nativo en ESP32**: La disponibilidad de bibliotecas como PubSubClient hace que la implementación sea directa y bien documentada.
 
-2. **Arquitectura Publicar/Suscribir**: Perfectamente adecuada para nuestro escenario donde múltiples sensores ESP32 (publicadores) envían datos a un sistema central (suscriptor).
-
-3. **Uso Eficiente de Recursos**: MQTT está diseñado para ser liviano y consumir poco ancho de banda, ideal para dispositivos con recursos limitados como los ESP32.
-
-4. **Calidad de Servicio Configurable**: Nos permite determinar el nivel de garantía necesario para diferentes tipos de mensajes.
+2. **Uso Eficiente de Recursos**: MQTT está diseñado para ser liviano y consumir poco ancho de banda, ideal para dispositivos con recursos limitados como los ESP32.
 
 Nuestra implementación de MQTT incluye:
 - Un broker MQTT Mosquitto ejecutándose en una Raspberry Pi o PC como servidor central
@@ -90,98 +86,17 @@ Nuestros dispositivos ESP32 se utilizarán de diferentes maneras según la funci
 
 Validamos nuestro diseño de conectividad utilizando Cisco Packet Tracer para simular toda la infraestructura de red antes de la implementación física.
 
-#### 2.1.1 Configuración de la Simulación
+#### Simulación
 
-Nuestra simulación incluyó:
-- 20 sensores IoT basados en ESP32 (representados como dispositivos IoT en Packet Tracer)
-- 5 ESP32-CAM para control de calidad (representados como cámaras IP)
-- 1 Raspberry Pi como servidor central (ejecutando el broker MQTT)
-- 1 router Wi-Fi existente
-- 1 computadora para monitoreo
-
-La configuración de red incluyó:
-- Red Wi-Fi con SSID "T-Alem-IoT"
-- Direcciones IP estáticas para dispositivos críticos
-- Raspberry Pi configurado para reenviar datos a una base de datos local
-
-#### 2.1.2 Resultados de las Pruebas
-
-Las pruebas de conectividad arrojaron los siguientes resultados:
-
-| Caso de Prueba | Resultado | Notas |
-|-----------|--------|-------|
-| ESP32 a broker MQTT | ✓ Éxito | Latencia promedio: 36ms |
-| ESP32-CAM a broker MQTT | ✓ Éxito | Latencia promedio: 45ms |
-| Alerta de inventario bajo | ✓ Éxito | Alerta recibida en 320ms |
-| Transmisión simultánea | ✓ Éxito | La red manejó 15 dispositivos ESP32 simultáneos |
-| Resistencia a fallos Wi-Fi | ✓ Éxito | Los ESP32 se reconectaron automáticamente |
-| Consumo de energía ESP32 | ✓ Éxito | ~120mA en operación, ~10μA en modo sueño profundo |
-
-#### 2.1.3 Desafíos Encontrados
+#### Desafíos Encontrados
 
 Durante la validación, encontramos y resolvimos varios desafíos:
 
 1. **Alcance Wi-Fi limitado**: Algunas áreas del almacén mostraban señal débil.
-   - Solución: Añadimos un repetidor Wi-Fi estratégicamente ubicado y utilizamos antenas externas en algunos ESP32.
 
 2. **Consumo de batería**: Los ESP32 enviando datos constantemente agotaban la batería rápidamente.
-   - Solución: Implementamos ciclos de sueño profundo (deep sleep) con despertar cada 5 minutos para medición y transmisión.
 
 3. **Limitaciones de procesamiento**: El análisis de imágenes en ESP32-CAM resultó limitado.
-   - Solución: Rediseñamos para que las ESP32-CAM solo capturen imágenes y las envíen a la Raspberry Pi para procesamiento.
-
-### 2.2 Prueba de Prototipo Real
-
-Además de la simulación, construimos un prototipo físico básico con los componentes disponibles:
-
-- 3 ESP32 con sensores de peso simulados (potenciómetros)
-- 1 ESP32-CAM
-- 1 Raspberry Pi 3B+ como servidor central
-- Router Wi-Fi doméstico
-
-Este prototipo nos permitió validar:
-- La integración real del hardware
-- El consumo energético de los dispositivos
-- La fiabilidad de la comunicación MQTT entre ESP32 y Raspberry Pi
-- La capacidad de procesamiento para análisis básico de imágenes
-
-## 3. Plan de Implementación
-
-### 3.1 Fases de Despliegue
-
-Nuestra implementación seguirá un enfoque por fases adaptado a las limitaciones de un proyecto estudiantil:
-
-1. **Fase 1 (Semana 1-2)**: Configuración de infraestructura básica
-   - Instalación del broker MQTT en Raspberry Pi
-   - Configuración de la red Wi-Fi dedicada
-   - Programación básica de los ESP32
-
-2. **Fase 2 (Semana 3-4)**: Implementación de sensores de peso
-   - Montaje de 5 ESP32 con sensores de peso en área de prueba
-   - Calibración de los sensores
-   - Pruebas de transmisión de datos a la Raspberry Pi
-
-3. **Fase 3 (Semana 5-6)**: Implementación del sistema de control de calidad
-   - Instalación de 2 ESP32-CAM en puntos estratégicos
-   - Desarrollo de algoritmo básico de detección de defectos
-   - Integración con el sistema central
-
-4. **Fase 4 (Semana 7-8)**: Integración y pruebas finales
-   - Desarrollo de dashboard para visualización de datos
-   - Optimización del consumo energético
-   - Documentación completa del sistema
-
-### 3.2 Presupuesto Estimado
-
-| Componente | Cantidad | Precio Unitario | Total |
-|------------|----------|-----------------|-------|
-| ESP32 DevKit | 10 | $8 | $80 |
-| ESP32-CAM | 3 | $10 | $30 |
-| Raspberry Pi 3B+ | 1 | $35 | $35 |
-| Sensores de peso (HX711 + celda) | 7 | $15 | $105 |
-| Baterías y componentes de alimentación | - | - | $50 |
-| Carcasas y materiales de montaje | - | - | $40 |
-| **TOTAL** | | | **$340** |
 
 ### 3.3 Resultados Esperados
 
