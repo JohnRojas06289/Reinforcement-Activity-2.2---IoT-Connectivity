@@ -114,6 +114,7 @@ Probamos la infraestructura de red en **Cisco Packet Tracer**, validando:
 | **Procesamiento** |Alto (Raspberry Pi) |
 
 Con esta optimización, logramos:
+
 ✅ **Mayor potencia de procesamiento con Raspberry Pi.**  
 ✅ **Menor consumo en sensores con Zigbee.**  
 ✅ **Menor latencia y uso de red con CoAP.**  
