@@ -5,118 +5,174 @@
 
 ### 1.1 Comprensión de Nuestro Proceso
 
-Nuestro proyecto de aplicación se centra en dos procesos críticos en T-Alem, una empresa especializada en la fabricación y distribución de componentes de caucho para vehículos:
+Nuestro proyecto se centra en dos procesos críticos en T-Alem, una empresa especializada en la fabricación y distribución de componentes de caucho para vehículos:
 
-1. **Gestión de Inventario**: Actualmente es un proceso manual que requiere tiempo significativo del personal (aproximadamente 3 horas diarias) y es propenso a errores humanos. Nuestra solución implementará sensores de peso debajo de cada contenedor de almacenamiento para rastrear automáticamente los niveles de inventario en tiempo real.
+1. **Gestión de Inventario**: Actualmente, el conteo de materiales es manual, lo que genera ineficiencias y errores humanos. Se implementarán **sensores de peso** en cada contenedor, enviando datos a una **Raspberry Pi central** que gestiona el inventario en tiempo real.
 
-2. **Control de Calidad**: Actualmente depende de la inspección visual subjetiva por parte del personal, lo que lleva a inconsistencias. Nuestra solución implementará cámaras de visión artificial con algoritmos de IA para detectar defectos automáticamente.
+2. **Control de Calidad**: Actualmente depende de inspecciones visuales. Implementaremos **cámaras de visión artificial** conectadas a la **Raspberry Pi principal**, ejecutando modelos de **IA para detección de defectos**.
 
-Ambos procesos se beneficiarán enormemente de la conectividad IoT mediante:
-- Habilitación de transmisión de datos en tiempo real desde sensores a sistemas centrales
-- Reducción de la intervención humana y el error
-- Provisión de alertas inmediatas para inventario bajo o problemas de calidad
-- Creación de datos históricos para análisis y optimización
-- Mejora de la eficiencia operativa y la calidad del producto
+Ambos procesos se beneficiarán de la conectividad IoT mediante:
+- Transmisión en **tiempo real** de datos desde sensores y cámaras.
+- Reducción de la intervención humana y el error.
+- Generación de alertas instantáneas para inventario bajo o defectos detectados.
+- Registro de datos históricos para **optimización y análisis**.
+- Mejora en **eficiencia operativa** y **reducción de desperdicio**.
 
-### 1.2 Selección del Tipo de Red
+---
 
-Para nuestra implementación en T-Alem, hemos seleccionado una **red basada en Wi-Fi con ESP32** como núcleo de nuestra arquitectura:
+## 1.2 Selección de la Red IoT
 
-- **Red Wi-Fi existente**: Utilizaremos la infraestructura Wi-Fi ya disponible en la planta de fabricación
-- **Red de dispositivos ESP32**: Aprovecharemos la capacidad Wi-Fi integrada de las placas ESP32 para todos nuestros sensores y dispositivos de control
+Dado que ahora **Raspberry Pi** será el **nodo central de procesamiento**, hemos adoptado una **arquitectura híbrida de conectividad IoT** usando **Wi-Fi y Zigbee**:
 
-Este enfoque práctico proporciona los siguientes beneficios:
-- Reutilización de infraestructura de red existente, reduciendo costos
-- Facilidad de implementación al usar un tipo de microcontrolador unificado (ESP32)
-- Flexibilidad para ampliar la red añadiendo más dispositivos ESP32 según sea necesario
-- Capacidad de procesamiento local en cada nodo gracias a las características del ESP32
-- Implementación rápida y económica, ideal para esta etapa del proyecto 
+- **Wi-Fi (IEEE 802.11)**: Conexión principal para el servidor, cámaras y acceso a la nube.
+- **Zigbee (IEEE 802.15.4)**: Para sensores de peso y otros dispositivos de bajo consumo.
 
-### 1.3 Protocolos de Red
+### 📌 Ventajas de la integración de Zigbee:
+✅ **Menor consumo energético**: Ideal para sensores con batería.  
+✅ **Comunicación en malla**: Mejora la cobertura sin infraestructura extra.  
+✅ **Alta escalabilidad**: Permite conectar cientos de sensores sin congestión.  
 
-Después de evaluar diversos protocolos IoT considerando nuestra infraestructura basada en ESP32, hemos seleccionado:
+### 📌 Implementación:
+- **Sensores de peso con Zigbee**: Módulos **CC2530/XBee** conectados a la Raspberry Pi.
+- **Coordinador Zigbee**: La **Raspberry Pi actuará como coordinador Zigbee** con un **Zigbee HAT**.
+- **Cámaras de inspección**: Conectadas directamente a la Raspberry Pi mediante **Wi-Fi o Ethernet**.
+
+---
+
+## 1.3 Protocolos de Comunicación
 
 | Protocolo | Capa | Propósito | Implementación |
-|----------|-------|---------|----------------|
-| **MQTT** | Aplicación | Transmisión de datos principal | Biblioteca PubSubClient para ESP32 |
-| **Wi-Fi (IEEE 802.11)** | Física/Enlace | Conectividad principal | Módulo Wi-Fi integrado en ESP32 |
-| **JSON** | Formato de datos | Estructuración de datos | ArduinoJson para serialización/deserialización |
+|----------|------|-----------|---------------|
+| **CoAP** | Aplicación | Comunicación eficiente con sensores | `aiocoap` en Raspberry Pi |
+| **MQTT** | Aplicación | Comunicación entre Raspberry Pi y la nube | Mosquitto MQTT |
+| **Wi-Fi (802.11)** | Física/Enlace | Conexión de cámaras y backend | Módulo Wi-Fi en Raspberry Pi |
+| **Zigbee (IEEE 802.15.4)** | Física/Enlace | Sensores de peso | Módulos CC2530/XBee |
+| **JSON** | Formato de datos | Estructuración de datos | `json` en Python |
 
-#### 1.3.1 Implementación de MQTT
+### 📌 Implementación de CoAP
 
-MQTT será nuestro protocolo principal debido a que ofrece: 
+CoAP complementará a MQTT en la comunicación con sensores Zigbee, permitiendo:
+- ✅ **Menor consumo de ancho de banda** al usar UDP.
+- ✅ **Modelo RESTful** (`GET`, `POST`, `PUT`, `DELETE`).
+- ✅ **Menor latencia** en comparación con MQTT.
 
-1. **Soporte nativo en ESP32**: La disponibilidad de bibliotecas como PubSubClient hace que la implementación sea directa y bien documentada.
+📌 **En la Raspberry Pi:**  
+- Instalación de **aiocoap**: `pip install aiocoap`
+- Sensores enviarán datos **CoAP → Coordinador Zigbee → Raspberry Pi**
+- Raspberry Pi retransmitirá **CoAP → MQTT → Backend**
 
-2. **Uso Eficiente de Recursos**: MQTT está diseñado para ser liviano y consumir poco ancho de banda, ideal para dispositivos con recursos limitados como los ESP32.
+---
 
-Nuestra implementación de MQTT incluye:
-- Un broker MQTT Mosquitto ejecutándose en una Raspberry Pi o PC como servidor central
-- Clientes MQTT implementados en cada ESP32 utilizando la biblioteca PubSubClient
-- Estructura de temas organizada por:
-  - `/inventario/[id_contenedor]/peso`
-  - `/inventario/[id_contenedor]/alerta`
-  - `/calidad/[id_camara]/inspeccion`
-  - `/calidad/[id_camara]/defecto`
-- Autenticación básica para asegurar las comunicaciones
+## 1.4 Arquitectura de Hardware
 
-### 1.4 Arquitectura de Hardware basada en ESP32
+Nuestra infraestructura de hardware basada en **Raspberry Pi + Zigbee**:
 
-Nuestros dispositivos ESP32 se utilizarán de diferentes maneras según la función:
+### 📌 **1. Nodo Central - Raspberry Pi (Servidor IoT)**
+- **Modelo:** Raspberry Pi 4B (4GB o 8GB RAM).
+- **Función:** Procesar datos de sensores, cámaras e integrarse con la nube.
+- **Conexiones:** Wi-Fi para acceso remoto y Zigbee HAT para comunicación con sensores.
 
-1. **Nodos de Sensores de Peso**:
-   - ESP32 + HX711 + Celda de carga
-   - Alimentación: Batería LiPo con panel solar pequeño para carga
-   - Función: Medir el peso de los contenedores y enviar datos al broker MQTT
+### 📌 **2. Sensores de Peso**
+- **Hardware:** ESP32 + Zigbee CC2530 + HX711 + Celdas de carga.
+- **Función:** Medir peso y enviar datos a la Raspberry Pi a través de CoAP.
+- **Alimentación:** Batería LiPo con panel solar.
 
-2. **Nodos de Control de Calidad**:
-   - ESP32-CAM (variante con cámara integrada)
-   - Alimentación: Conexión a la red eléctrica
-   - Función: Capturar imágenes de las piezas y realizar análisis básico de imagen
+### 📌 **3. Cámaras de Inspección de Calidad**
+- **Hardware:** Raspberry Pi Camera Module v2 o USB Camera.
+- **Función:** Captura y análisis de imágenes con modelos de visión artificial.
 
-3. **Nodo Coordinador**:
-   - ESP32 estándar conectado a un Raspberry Pi
-   - Alimentación: Conexión a la red eléctrica
-   - Función: Actuar como puente entre los sensores y el sistema de gestión
+### 📌 **4. Coordinador Zigbee**
+- **Hardware:** Raspberry Pi + Zigbee HAT.
+- **Función:** Actúa como puente entre sensores Zigbee y el backend.
+
+### 📌 **5. Gateway Wi-Fi-Zigbee**
+- **Hardware:** ESP32 + módulo Zigbee.
+- **Función:** Convertir mensajes CoAP de los sensores en MQTT para la nube.
+
+---
 
 ## 2. Validación del Diseño
 
-### 2.1 Simulación en Cisco Packet Tracer
+### 📌 2.1 Simulación en Cisco Packet Tracer
 
-Validamos nuestro diseño de conectividad utilizando Cisco Packet Tracer para simular toda la infraestructura de red antes de la implementación física.
+Probamos la infraestructura de red en **Cisco Packet Tracer**, validando:
+1. **Conectividad entre nodos Zigbee y la Raspberry Pi.**
+2. **Tiempo de respuesta de CoAP y MQTT.**
+3. **Consumo energético de sensores de peso.**
 
-#### Simulación
+---
 
-#### Desafíos Encontrados
+## 3. Selección de Opciones
 
-Durante la validación, encontramos y resolvimos varios desafíos:
+| Componente | Opción  | 
+|------------|---------------|
+| **Nodo Central** | Raspberry Pi 4B |
+| **Red** | Zigbee (IEEE 802.15.4) + Wi-Fi |
+| **Protocolo** | CoAP + MQTT |
+| **Consumo Energético** | Bajo con Zigbee |
+| **Cobertura** | Expansible con malla Zigbee |
+| **Procesamiento** |Alto (Raspberry Pi) |
 
-1. **Alcance Wi-Fi limitado**: Algunas áreas del almacén mostraban señal débil.
+Con esta optimización, logramos:
+✅ **Mayor potencia de procesamiento con Raspberry Pi.**  
+✅ **Menor consumo en sensores con Zigbee.**  
+✅ **Menor latencia y uso de red con CoAP.**  
 
-2. **Consumo de batería**: Los ESP32 enviando datos constantemente agotaban la batería rápidamente.
+---
 
-3. **Limitaciones de procesamiento**: El análisis de imágenes en ESP32-CAM resultó limitado.
+## 4. Resultados Esperados
 
-### 3.3 Resultados Esperados
+Con la integración basada en **Raspberry Pi + Zigbee + CoAP**, esperamos:
 
-Con esta implementación basada en ESP32, esperamos lograr:
+- 📉 **Reducción del 90%** en tiempo de conteo manual de inventario.
+- 📊 **Precisión del 85%+** en monitoreo de inventario.
+- 🤖 **Detección de defectos del 60%+** en inspección de calidad.
+- 🔄 **Optimización en procesos** con monitoreo en tiempo real.
 
-- 90% de reducción en el tiempo de conteo manual de inventario
-- Precisión del 85%+ en el seguimiento de inventario
-- Tasa de detección de defectos básicos del 60%+ en control de calidad
-- Visibilidad en tiempo real de niveles de inventario críticos
-- Demostración funcional del concepto para una implementación mayor en el futuro
+---
 
-## 4. Referencias de Apoyo
+## 5. Referencias de Apoyo
 
-1. Espressif Systems. (2023). ESP32 Series Datasheet. Retrieved from [Espressif Systems](https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf)
+1. Raspberry Pi Foundation. (2023). **Raspberry Pi 4 Model B Technical Specifications**. Retrieved from [Raspberry Pi](https://www.raspberrypi.org/documentation/)
+2. Texas Instruments. (2023). **CC2530 Zigbee Module Datasheet**.
+3. Naik, N. (2017). **Choice of effective messaging protocols for IoT systems**. IEEE.
 
-2. Kodali, R. K., & Mahesh, K. S. (2016, December). A low cost implementation of MQTT using ESP8266. In 2016 2nd International Conference on Contemporary Computing and Informatics (IC3I) (pp. 404-408). IEEE.
+---
+# Acta
 
-3. Light, R. A. (2017). Mosquitto: server and client implementation of the MQTT protocol. Journal of Open Source Software, 2(13), 265.
+## Distribución de Actividades  
+Las tareas fueron distribuidas **equitativamente** entre los tres integrantes, asegurando una contribución balanceada en cada fase del trabajo.  
 
-4. Naik, N. (2017, August). Choice of effective messaging protocols for IoT systems: MQTT, CoAP, AMQP and HTTP. In 2017 IEEE international systems engineering symposium (ISSE) (pp. 1-7). IEEE.
+| Fecha | Actividad | Responsable |
+|-------|-----------|------------|
+| **23/03/2025** | Revisión del problema y planteamiento del proyecto | Oscar, John, Santiago |
+| **24/03/2025** | Investigación sobre protocolos de red IoT (MQTT, CoAP, Zigbee) | Oscar, John, Santiago |
+| **25/03/2025** | Definición de arquitectura: Nodo central (Raspberry Pi), Sensores (ESP32+Zigbee) | Oscar, John, Santiago |
+| **26/03/2025** | Desarrollo de la wiki con especificaciones técnicas | Oscar, John, Santiago |
+| **27/03/2025** | Implementación del prototipo en **Cisco Packet Tracer** | Oscar, John, Santiago |
+| **28/03/2025** | Revisión final, ajustes y documentación | Oscar, John, Santiago |
 
-5. Singh, M., Rajan, M. A., Shivraj, V. L., & Balamuralidhar, P. (2015, January). Secure MQTT for Internet of Things (IoT). In 2015 Fifth International Conference on Communication Systems and Network Technologies (pp. 746-751). IEEE.
+---
 
-6. Torres Bermúdez, A., François, J., Blouin, C., & Steinmetz, R. (2022). Power consumption analysis of MQ
+## Desarrollo del Trabajo  
+
+### 📌 Investigación y Diseño de Red  
+- Se analizaron las opciones de conectividad para IoT, comparando **Wi-Fi, Zigbee y LPWAN**.  
+- Se optó por **Raspberry Pi como nodo central**, eliminando el ESP32 como controlador principal.  
+- Se adoptó un modelo híbrido con **Zigbee para sensores de bajo consumo y Wi-Fi para la conexión al backend**.  
+
+### 📌 Documentación y Desarrollo de la Wiki  
+- Se redactó la **wiki técnica** con la arquitectura propuesta, protocolos y hardware seleccionado.  
+- Se detallaron las ventajas de **Zigbee sobre Wi-Fi** para los sensores de peso.  
+- Se implementó el uso de **CoAP** para comunicación eficiente con sensores IoT.  
+
+### 📌 Simulación en Cisco Packet Tracer  
+- Se construyó un **modelo de red** en **Cisco Packet Tracer** para validar la conectividad. 
+
+---
+# Integrantes
+Oscar David Vergara Moreno
+
+Santiago Gavilán Páez
+
+John Jairo Rojas Vergara
