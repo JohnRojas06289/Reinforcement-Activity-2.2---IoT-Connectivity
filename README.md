@@ -41,13 +41,13 @@ Dado que ahora **Raspberry Pi** será el **nodo central de procesamiento**, hemo
 
 ## 1.3 Protocolos de Comunicación
 
-| Protocolo | Capa | Propósito | Implementación |
-|----------|------|-----------|---------------|
-| **CoAP** | Aplicación | Comunicación eficiente con sensores | `aiocoap` en Raspberry Pi |
-| **MQTT** | Aplicación | Comunicación entre Raspberry Pi y la nube | Mosquitto MQTT |
-| **Wi-Fi (802.11)** | Física/Enlace | Conexión de cámaras y backend | Módulo Wi-Fi en Raspberry Pi |
-| **Zigbee (IEEE 802.15.4)** | Física/Enlace | Sensores de peso | Módulos CC2530/XBee |
-| **JSON** | Formato de datos | Estructuración de datos | `json` en Python |
+| Protocolo | Capa | Propósito | 
+|----------|------|-----------|
+| **CoAP** | Aplicación | Comunicación eficiente con sensores | 
+| **MQTT** | Aplicación | Comunicación entre Raspberry Pi y la nube | 
+| **Wi-Fi (802.11)** | Física/Enlace | Conexión de cámaras y backend | 
+| **Zigbee (IEEE 802.15.4)** | Física/Enlace | Sensores de peso | 
+| **JSON** | Formato de datos | Estructuración de datos |
 
 ### 📌 Implementación de CoAP
 
