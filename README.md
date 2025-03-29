@@ -39,7 +39,6 @@ Después de evaluar diversos protocolos IoT considerando nuestra infraestructura
 | Protocolo | Capa | Propósito | Implementación |
 |----------|-------|---------|----------------|
 | **MQTT** | Aplicación | Transmisión de datos principal | Biblioteca PubSubClient para ESP32 |
-| **HTTP/REST** | Aplicación | Interfaz de usuario web | Servidor web integrado en ESP32 |
 | **Wi-Fi (IEEE 802.11)** | Física/Enlace | Conectividad principal | Módulo Wi-Fi integrado en ESP32 |
 | **JSON** | Formato de datos | Estructuración de datos | ArduinoJson para serialización/deserialización |
 
